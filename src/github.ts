@@ -34,8 +34,10 @@ export async function getPRDiff(octokit: Octokit, ctx: PullRequestContext): Prom
     mediaType: { format: "diff" },
   });
 
-  // When requesting diff format, the response data is a string
-  return response.data as unknown as string;
+  const data = response.data;
+  if (typeof data === "string") return data;
+  if (Buffer.isBuffer(data)) return data.toString("utf-8");
+  throw new Error("Unexpected response format from GitHub diff API");
 }
 
 export async function postReviewComments(
