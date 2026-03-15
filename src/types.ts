@@ -3,6 +3,7 @@ export interface ReviewConfig {
   githubToken: string;
   model: string;
   maxFiles: number;
+  concurrency: number;
   reviewScope: string[];
   language: string;
 }
