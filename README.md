@@ -1,6 +1,6 @@
 # AI Code Review Action
 
-[![CI](https://github.com/YOUR_USERNAME/ai-code-review-action/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/ai-code-review-action/actions/workflows/ci.yml)
+[![CI](https://github.com/yasunchukandriy/ai-code-review-action/actions/workflows/ci.yml/badge.svg)](https://github.com/yasunchukandriy/ai-code-review-action/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Automated pull request code review powered by **Claude AI**. Get instant, actionable feedback on every PR — catches bugs, security issues, SOLID violations, and performance problems.
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: AI Code Review
-        uses: YOUR_USERNAME/ai-code-review-action@v1
+        uses: yasunchukandriy/ai-code-review-action@v1
         with:
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -60,7 +60,8 @@ The action will automatically review the PR and post inline comments.
 | `anthropic-api-key` | Anthropic API key for Claude | *required* |
 | `github-token` | GitHub token for PR access | *required* |
 | `model` | Claude model to use | `claude-sonnet-4-5-20250929` |
-| `max-files` | Max files to review per PR | `20` |
+| `max-files` | Max files to review per PR (1-100) | `20` |
+| `concurrency` | Parallel review batch size (1-20) | `5` |
 | `review-scope` | Categories: `bugs,solid,security,performance,style` | `bugs,solid,security,performance` |
 | `language` | Comment language (`en`, `de`, `es`, etc.) | `en` |
 
@@ -122,7 +123,7 @@ The following files are automatically skipped:
 ### Review only security and bugs
 
 ```yaml
-- uses: YOUR_USERNAME/ai-code-review-action@v1
+- uses: yasunchukandriy/ai-code-review-action@v1
   with:
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -132,7 +133,7 @@ The following files are automatically skipped:
 ### Use a different model
 
 ```yaml
-- uses: YOUR_USERNAME/ai-code-review-action@v1
+- uses: yasunchukandriy/ai-code-review-action@v1
   with:
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -142,7 +143,7 @@ The following files are automatically skipped:
 ### Limit files and get German reviews
 
 ```yaml
-- uses: YOUR_USERNAME/ai-code-review-action@v1
+- uses: yasunchukandriy/ai-code-review-action@v1
   with:
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
