@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import Anthropic from "@anthropic-ai/sdk";
 import { getConfig } from "./config";
 import { parseDiff } from "./diff-parser";
 import { reviewFiles, generateSummary } from "./reviewer";
@@ -41,11 +42,12 @@ async function run(): Promise<void> {
     core.info(`Reviewing ${reviewableFiles.length} files`);
 
     // 5. Review files with Claude
-    const comments = await reviewFiles(reviewableFiles, config);
+    const client = new Anthropic({ apiKey: config.anthropicApiKey });
+    const comments = await reviewFiles(reviewableFiles, config, client);
     core.info(`Total comments: ${comments.length}`);
 
     // 6. Generate summary
-    const summary = await generateSummary(comments, reviewableFiles.length, config);
+    const summary = await generateSummary(comments, reviewableFiles.length, config, client);
     core.info(`Review score: ${summary.score}/10`);
 
     // 7. Post results to GitHub

@@ -34,13 +34,15 @@ async function callClaude(
       }
       throw new Error(`Unexpected response block type: ${block.type}`);
     } catch (error: unknown) {
-      const isRateLimit =
+      const isRetryable =
         error instanceof Anthropic.RateLimitError ||
-        (error instanceof Anthropic.APIError && error.status === 529);
+        error instanceof Anthropic.InternalServerError ||
+        error instanceof Anthropic.APIConnectionError ||
+        (error instanceof Anthropic.APIError && [529, 502, 503, 504].includes(error.status));
 
-      if (isRateLimit && attempt < MAX_RETRIES - 1) {
+      if (isRetryable && attempt < MAX_RETRIES - 1) {
         const delay = BASE_DELAY_MS * Math.pow(2, attempt);
-        core.warning(`Rate limited, retrying in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`);
+        core.warning(`Retryable error, retrying in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`);
         await sleep(delay);
         continue;
       }
@@ -61,7 +63,13 @@ function parseComments(raw: string, file: FileDiff): ReviewComment[] {
     }
 
     return parsed.comments
-      .filter((c: Record<string, unknown>) => c.file && c.line && c.body)
+      .filter((c: Record<string, unknown>) => {
+        if (typeof c.file !== "string") return false;
+        if (typeof c.body !== "string") return false;
+        const line = Number(c.line);
+        if (!Number.isInteger(line) || line < 1) return false;
+        return true;
+      })
       .map((c: Record<string, unknown>) => ({
         file: String(c.file),
         line: Number(c.line),
@@ -76,31 +84,52 @@ function parseComments(raw: string, file: FileDiff): ReviewComment[] {
         );
         return validLines.includes(c.line);
       });
-  } catch {
-    core.warning(`Failed to parse Claude response for ${file.path}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    core.warning(`Failed to parse Claude response for ${file.path}: ${message}`);
+    core.debug(`Raw response preview for ${file.path}: ${raw.slice(0, 200)}`);
     return [];
   }
 }
 
-export async function reviewFiles(files: FileDiff[], config: ReviewConfig): Promise<ReviewComment[]> {
-  const client = new Anthropic({ apiKey: config.anthropicApiKey });
+async function reviewFile(
+  file: FileDiff,
+  config: ReviewConfig,
+  client: Anthropic,
+  systemPrompt: string,
+): Promise<ReviewComment[]> {
+  core.info(`Reviewing ${file.path} (${file.additions}+ ${file.deletions}-)`);
+
+  const userPrompt = buildFileReviewPrompt(file);
+  const response = await callClaude(client, config.model, systemPrompt, userPrompt);
+  const comments = parseComments(response, file);
+
+  core.info(`  Found ${comments.length} comments`);
+  return comments;
+}
+
+export async function reviewFiles(
+  files: FileDiff[],
+  config: ReviewConfig,
+  client: Anthropic,
+): Promise<ReviewComment[]> {
   const systemPrompt = buildSystemPrompt(config);
   const allComments: ReviewComment[] = [];
 
-  for (const file of files) {
-    if (file.isBinary || file.hunks.length === 0) {
-      core.info(`Skipping ${file.path} (binary or no hunks)`);
-      continue;
+  const reviewable = files.filter((f) => {
+    if (f.isBinary || f.hunks.length === 0) {
+      core.info(`Skipping ${f.path} (binary or no hunks)`);
+      return false;
     }
+    return true;
+  });
 
-    core.info(`Reviewing ${file.path} (${file.additions}+ ${file.deletions}-)`);
-
-    const userPrompt = buildFileReviewPrompt(file);
-    const response = await callClaude(client, config.model, systemPrompt, userPrompt);
-    const comments = parseComments(response, file);
-
-    core.info(`  Found ${comments.length} comments`);
-    allComments.push(...comments);
+  for (let i = 0; i < reviewable.length; i += config.concurrency) {
+    const batch = reviewable.slice(i, i + config.concurrency);
+    const results = await Promise.all(
+      batch.map((file) => reviewFile(file, config, client, systemPrompt)),
+    );
+    allComments.push(...results.flat());
   }
 
   return allComments;
@@ -110,8 +139,8 @@ export async function generateSummary(
   comments: ReviewComment[],
   fileCount: number,
   config: ReviewConfig,
+  client: Anthropic,
 ): Promise<ReviewSummary> {
-  const client = new Anthropic({ apiKey: config.anthropicApiKey });
   const criticalCount = comments.filter((c) => c.severity === "critical").length;
   const prompt = buildSummaryPrompt(fileCount, comments.length, criticalCount);
 

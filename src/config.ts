@@ -7,7 +7,8 @@ export function getConfig(): ReviewConfig {
   const anthropicApiKey = core.getInput("anthropic-api-key", { required: true });
   const githubToken = core.getInput("github-token", { required: true });
   const model = core.getInput("model") || "claude-sonnet-4-5-20250929";
-  const maxFiles = parseInt(core.getInput("max-files") || "20", 10);
+  const maxFilesRaw = parseInt(core.getInput("max-files") || "20", 10);
+  const concurrencyRaw = parseInt(core.getInput("concurrency") || "5", 10);
   const language = core.getInput("language") || "en";
 
   const scopeRaw = core.getInput("review-scope") || "bugs,solid,security,performance";
@@ -21,25 +22,30 @@ export function getConfig(): ReviewConfig {
     reviewScope.push("bugs", "solid", "security", "performance");
   }
 
-  if (isNaN(maxFiles) || maxFiles < 1) {
-    core.warning(`Invalid max-files value, using default of 20`);
-    return {
-      anthropicApiKey,
-      githubToken,
-      model,
-      maxFiles: 20,
-      reviewScope,
-      language,
-    };
+  core.setSecret(anthropicApiKey);
+
+  if (anthropicApiKey.trim() === "") {
+    throw new Error("anthropic-api-key must not be empty or whitespace-only");
   }
 
-  core.setSecret(anthropicApiKey);
+  let maxFiles = maxFilesRaw;
+  if (isNaN(maxFilesRaw) || maxFilesRaw < 1 || maxFilesRaw > 100) {
+    core.warning(`Invalid max-files value, using default of 20`);
+    maxFiles = 20;
+  }
+
+  let concurrency = concurrencyRaw;
+  if (isNaN(concurrencyRaw) || concurrencyRaw < 1 || concurrencyRaw > 20) {
+    core.warning(`Invalid concurrency value, using default of 5`);
+    concurrency = 5;
+  }
 
   return {
     anthropicApiKey,
     githubToken,
     model,
     maxFiles,
+    concurrency,
     reviewScope,
     language,
   };
