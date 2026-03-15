@@ -1,0 +1,47 @@
+name: "AI Code Review"
+description: "Automated pull request code review powered by Claude AI — catches bugs, security issues, SOLID violations, and performance problems"
+author: "AI Code Review Action"
+
+branding:
+  icon: "eye"
+  color: "purple"
+
+inputs:
+  anthropic-api-key:
+    description: "Anthropic API key for Claude"
+    required: true
+  github-token:
+    description: "GitHub token for PR access (usually secrets.GITHUB_TOKEN)"
+    required: true
+  model:
+    description: "Claude model to use"
+    required: false
+    default: "claude-sonnet-4-5-20250929"
+  max-files:
+    description: "Maximum number of files to review per PR"
+    required: false
+    default: "20"
+  concurrency:
+    description: "Number of files to review in parallel (1-20)"
+    required: false
+    default: "5"
+  review-scope:
+    description: "Comma-separated review categories: bugs, solid, security, performance, style"
+    required: false
+    default: "bugs,solid,security,performance"
+  language:
+    description: "Language for review comments (e.g. en, de, es)"
+    required: false
+    default: "en"
+
+outputs:
+  review-score:
+    description: "Overall code quality score (1-10)"
+  total-comments:
+    description: "Total number of review comments"
+  critical-count:
+    description: "Number of critical issues found"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
