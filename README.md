@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/yasunchukandriy/ai-code-review-action/actions/workflows/ci.yml/badge.svg)](https://github.com/yasunchukandriy/ai-code-review-action/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue.svg)](https://www.typescriptlang.org/)
+[![Tests: 99](https://img.shields.io/badge/tests-99%20passed-brightgreen.svg)](https://github.com/yasunchukandriy/ai-code-review-action/actions)
 
 Automated pull request code review powered by **Claude AI**. Get instant, actionable feedback on every PR — catches bugs, security issues, SOLID violations, and performance problems.
 
@@ -14,6 +16,42 @@ Automated pull request code review powered by **Claude AI**. Get instant, action
 - **Inline Comments** — Posts review comments directly on the relevant lines in your PR
 - **Summary Report** — Provides an overall score and summary comment with stats breakdown
 - **Configurable Scope** — Choose which categories to review and how many files to process
+
+## Demo
+
+<details>
+<summary><b>Inline review comment</b></summary>
+
+```
+🚨 [bug] src/api/users.ts:42
+  The `findUser` result is used without null check. If the user doesn't
+  exist, line 45 will throw TypeError: Cannot read property 'email' of null.
+
+  Suggestion: Add an early return or throw a NotFoundError before accessing properties.
+```
+</details>
+
+<details>
+<summary><b>Summary comment</b></summary>
+
+```
+## AI Code Review — Score: 7/10 🟡
+
+Reviewed 8 files, found 12 issues.
+
+| Severity | Count |
+|----------|-------|
+| 🚨 Critical | 2 |
+| ⚠️ Warning  | 6 |
+| 💡 Info      | 4 |
+
+### Summary
+Overall solid PR with clean separation of concerns. Two critical issues
+need attention: a null pointer risk in the user lookup path and a missing
+auth check on the admin endpoint. The remaining warnings are mostly about
+error handling consistency and unused imports.
+```
+</details>
 
 ## Quick Start
 
