@@ -6,7 +6,7 @@ const VALID_SCOPES = ["bugs", "solid", "security", "performance", "style"];
 export function getConfig(): ReviewConfig {
   const anthropicApiKey = core.getInput("anthropic-api-key", { required: true });
   const githubToken = core.getInput("github-token", { required: true });
-  const model = core.getInput("model") || "claude-sonnet-4-5-20250929";
+  const model = core.getInput("model") || "claude-sonnet-4-5-20250514";
   const maxFilesRaw = parseInt(core.getInput("max-files") || "20", 10);
   const concurrencyRaw = parseInt(core.getInput("concurrency") || "5", 10);
   const language = core.getInput("language") || "en";

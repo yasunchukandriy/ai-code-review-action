@@ -59,7 +59,7 @@ The action will automatically review the PR and post inline comments.
 |-------|-------------|---------|
 | `anthropic-api-key` | Anthropic API key for Claude | *required* |
 | `github-token` | GitHub token for PR access | *required* |
-| `model` | Claude model to use | `claude-sonnet-4-5-20250929` |
+| `model` | Claude model to use | `claude-sonnet-4-5-20250514` |
 | `max-files` | Max files to review per PR (1-100) | `20` |
 | `concurrency` | Parallel review batch size (1-20) | `5` |
 | `review-scope` | Categories: `bugs,solid,security,performance,style` | `bugs,solid,security,performance` |
@@ -137,7 +137,7 @@ The following files are automatically skipped:
   with:
     anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
     github-token: ${{ secrets.GITHUB_TOKEN }}
-    model: "claude-opus-4-6"
+    model: "claude-opus-4-20250514"
 ```
 
 ### Limit files and get German reviews

@@ -4,7 +4,7 @@ import { ReviewConfig, FileDiff } from "../src/types";
 const baseConfig: ReviewConfig = {
   anthropicApiKey: "sk-test",
   githubToken: "ghp_test",
-  model: "claude-sonnet-4-5-20250929",
+  model: "claude-sonnet-4-5-20250514",
   maxFiles: 20,
   concurrency: 5,
   reviewScope: ["bugs", "security", "performance"],

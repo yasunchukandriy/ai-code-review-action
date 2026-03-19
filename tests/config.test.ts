@@ -48,7 +48,7 @@ describe("getConfig", () => {
   it("uses default model when input is empty", () => {
     setupInputs();
     const config = getConfig();
-    expect(config.model).toBe("claude-sonnet-4-5-20250929");
+    expect(config.model).toBe("claude-sonnet-4-5-20250514");
   });
 
   it("uses default maxFiles when input is empty", () => {
